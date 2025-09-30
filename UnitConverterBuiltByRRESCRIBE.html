@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Converter Built By RRESCRIBE</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #8f8f8f;
+            --accent-color: #bb86fc;
+            --border-color: #333333;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .converter-wrapper {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        h1 span {
+            font-weight: 300;
+            color: var(--secondary-text-color);
+        }
+        .category-selector {
+            margin-bottom: 2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--secondary-text-color);
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1.1rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        select {
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 0.7em top 50%, 0 0;
+            background-size: 0.65em auto, 100%;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.2);
+        }
+        .converter-io {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .io-group {
+            flex: 1;
+        }
+        .equals-sign {
+            font-size: 2rem;
+            color: var(--secondary-text-color);
+            padding-top: 1.5rem;
+        }
+        @media (max-width: 600px) {
+            .converter-io {
+                flex-direction: column;
+            }
+            .equals-sign {
+                transform: rotate(90deg);
+                padding-top: 0;
+                padding-bottom: 1rem;
+            }
+            .converter-wrapper {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="converter-wrapper">
+        <header>
+            <h1>Unit Converter <span>Built By RRESCRIBE</span></h1>
+        </header>
+        <main>
+            <div class="category-selector">
+                <label for="categorySelect">Category</label>
+                <select id="categorySelect"></select>
+            </div>
+            <div class="converter-io">
+                <div class="io-group">
+                    <label for="fromValue">From</label>
+                    <input type="number" id="fromValue" value="1">
+                    <select id="fromUnit"></select>
+                </div>
+                <div class="equals-sign">=</div>
+                <div class="io-group">
+                    <label for="toValue">To</label>
+                    <input type="number" id="toValue">
+                    <select id="toUnit"></select>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const units = {
+            "Length": {
+                "Meter": { to_base: 1, from_base: 1 },
+                "Kilometer": { to_base: 1000, from_base: 1/1000 },
+                "Centimeter": { to_base: 0.01, from_base: 100 },
+                "Millimeter": { to_base: 0.001, from_base: 1000 },
+                "Micrometer": { to_base: 1e-6, from_base: 1e6 },
+                "Nanometer": { to_base: 1e-9, from_base: 1e9 },
+                "Picometer": { to_base: 1e-12, from_base: 1e12 },
+                "Inch": { to_base: 0.0254, from_base: 1/0.0254 },
+                "Foot": { to_base: 0.3048, from_base: 1/0.3048 },
+                "Yard": { to_base: 0.9144, from_base: 1/0.9144 },
+                "Mile": { to_base: 1609.34, from_base: 1/1609.34 },
+                "Nautical Mile": { to_base: 1852, from_base: 1/1852 },
+                "Fathom": { to_base: 1.8288, from_base: 1/1.8288 },
+                "Rod": { to_base: 5.0292, from_base: 1/5.0292 },
+                "Chain": { to_base: 20.1168, from_base: 1/20.1168 },
+                "Furlong": { to_base: 201.168, from_base: 1/201.168 },
+                "Light Year": { to_base: 9.461e15, from_base: 1/9.461e15 },
+                "Parsec": { to_base: 3.086e16, from_base: 1/3.086e16 },
+                "Astronomical Unit": { to_base: 1.496e11, from_base: 1/1.496e11 },
+                "Angstrom": { to_base: 1e-10, from_base: 1e10 },
+            },
+            "Area": {
+                "Square Meter": { to_base: 1, from_base: 1 },
+                "Square Kilometer": { to_base: 1e6, from_base: 1e-6 },
+                "Square Centimeter": { to_base: 1e-4, from_base: 1e4 },
+                "Square Millimeter": { to_base: 1e-6, from_base: 1e6 },
+                "Square Inch": { to_base: 0.00064516, from_base: 1/0.00064516 },
+                "Square Foot": { to_base: 0.092903, from_base: 1/0.092903 },
+                "Square Yard": { to_base: 0.836127, from_base: 1/0.836127 },
+                "Square Mile": { to_base: 2.59e6, from_base: 1/2.59e6 },
+                "Hectare": { to_base: 10000, from_base: 0.0001 },
+                "Acre": { to_base: 4046.86, from_base: 1/4046.86 },
+            },
+            "Volume": {
+                "Cubic Meter": { to_base: 1, from_base: 1 },
+                "Cubic Kilometer": { to_base: 1e9, from_base: 1e-9 },
+                "Cubic Centimeter": { to_base: 1e-6, from_base: 1e6 },
+                "Cubic Millimeter": { to_base: 1e-9, from_base: 1e9 },
+                "Liter": { to_base: 0.001, from_base: 1000 },
+                "Milliliter": { to_base: 1e-6, from_base: 1e6 },
+                "US Gallon": { to_base: 0.00378541, from_base: 1/0.00378541 },
+                "US Quart": { to_base: 0.000946353, from_base: 1/0.000946353 },
+                "US Pint": { to_base: 0.000473176, from_base: 1/0.000473176 },
+                "US Cup": { to_base: 0.000236588, from_base: 1/0.000236588 },
+                "US Fluid Ounce": { to_base: 2.95735e-5, from_base: 1/2.95735e-5 },
+                "US Tablespoon": { to_base: 1.47868e-5, from_base: 1/1.47868e-5 },
+                "US Teaspoon": { to_base: 4.92892e-6, from_base: 1/4.92892e-6 },
+                "Imperial Gallon": { to_base: 0.00454609, from_base: 1/0.00454609 },
+                "Imperial Quart": { to_base: 0.00113652, from_base: 1/0.00113652 },
+                "Imperial Pint": { to_base: 0.000568261, from_base: 1/0.000568261 },
+                "Imperial Fluid Ounce": { to_base: 2.84131e-5, from_base: 1/2.84131e-5 },
+                "Cubic Inch": { to_base: 1.6387e-5, from_base: 1/1.6387e-5 },
+                "Cubic Foot": { to_base: 0.0283168, from_base: 1/0.0283168 },
+            },
+            "Mass": {
+                "Kilogram": { to_base: 1, from_base: 1 },
+                "Gram": { to_base: 0.001, from_base: 1000 },
+                "Milligram": { to_base: 1e-6, from_base: 1e6 },
+                "Microgram": { to_base: 1e-9, from_base: 1e9 },
+                "Metric Ton": { to_base: 1000, from_base: 0.001 },
+                "Pound": { to_base: 0.453592, from_base: 1/0.453592 },
+                "Ounce": { to_base: 0.0283495, from_base: 1/0.0283495 },
+                "Carat": { to_base: 0.0002, from_base: 5000 },
+                "Stone": { to_base: 6.35029, from_base: 1/6.35029 },
+                "Slug": { to_base: 14.5939, from_base: 1/14.5939 },
+                "Troy Ounce": { to_base: 0.0311035, from_base: 1/0.0311035 },
+            },
+            "Time": {
+                "Second": { to_base: 1, from_base: 1 },
+                "Millisecond": { to_base: 0.001, from_base: 1000 },
+                "Microsecond": { to_base: 1e-6, from_base: 1e6 },
+                "Nanosecond": { to_base: 1e-9, from_base: 1e9 },
+                "Minute": { to_base: 60, from_base: 1/60 },
+                "Hour": { to_base: 3600, from_base: 1/3600 },
+                "Day": { to_base: 86400, from_base: 1/86400 },
+                "Week": { to_base: 604800, from_base: 1/604800 },
+                "Month": { to_base: 2.628e6, from_base: 1/2.628e6 },
+                "Year": { to_base: 3.154e7, from_base: 1/3.154e7 },
+                "Decade": { to_base: 3.154e8, from_base: 1/3.154e8 },
+                "Century": { to_base: 3.154e9, from_base: 1/3.154e9 },
+            },
+            "Temperature": {
+                "Celsius": { to_base: c => c + 273.15, from_base: k => k - 273.15 },
+                "Fahrenheit": { to_base: f => (f - 32) * 5/9 + 273.15, from_base: k => (k - 273.15) * 9/5 + 32 },
+                "Kelvin": { to_base: k => k, from_base: k => k },
+                "Rankine": { to_base: r => r * 5/9, from_base: k => k * 9/5 },
+            },
+            "Speed": {
+                "Meters per second": { to_base: 1, from_base: 1 },
+                "Kilometers per hour": { to_base: 1/3.6, from_base: 3.6 },
+                "Miles per hour": { to_base: 0.44704, from_base: 1/0.44704 },
+                "Feet per second": { to_base: 0.3048, from_base: 1/0.3048 },
+                "Knot": { to_base: 0.514444, from_base: 1/0.514444 },
+                "Mach (at sea level)": { to_base: 343, from_base: 1/343 },
+            },
+            "Pressure": {
+                "Pascal": { to_base: 1, from_base: 1 },
+                "Kilopascal": { to_base: 1000, from_base: 0.001 },
+                "Megapascal": { to_base: 1e6, from_base: 1e-6 },
+                "Bar": { to_base: 100000, from_base: 1e-5 },
+                "Millibar": { to_base: 100, from_base: 0.01 },
+                "Atmosphere": { to_base: 101325, from_base: 1/101325 },
+                "Pound per square inch (PSI)": { to_base: 6894.76, from_base: 1/6894.76 },
+                "Torr": { to_base: 133.322, from_base: 1/133.322 },
+                "Millimeter of mercury": { to_base: 133.322, from_base: 1/133.322 },
+            },
+            "Digital Storage": {
+                "Bit": { to_base: 1, from_base: 1 },
+                "Byte": { to_base: 8, from_base: 1/8 },
+                "Kilobit": { to_base: 1000, from_base: 0.001 },
+                "Kilobyte": { to_base: 8000, from_base: 1/8000 },
+                "Kibibit": { to_base: 1024, from_base: 1/1024 },
+                "Kibibyte": { to_base: 8192, from_base: 1/8192 },
+                "Megabit": { to_base: 1e6, from_base: 1e-6 },
+                "Megabyte": { to_base: 8e6, from_base: 1/8e6 },
+                "Mebibit": { to_base: 1048576, from_base: 1/1048576 },
+                "Mebibyte": { to_base: 8388608, from_base: 1/8388608 },
+                "Gigabit": { to_base: 1e9, from_base: 1e-9 },
+                "Gigabyte": { to_base: 8e9, from_base: 1/8e9 },
+                "Gibibit": { to_base: 1.074e9, from_base: 1/1.074e9 },
+                "Gibibyte": { to_base: 8.59e9, from_base: 1/8.59e9 },
+                "Terabit": { to_base: 1e12, from_base: 1e-12 },
+                "Terabyte": { to_base: 8e12, from_base: 1/8e12 },
+                "Tebibit": { to_base: 1.1e12, from_base: 1/1.1e12 },
+                "Tebibyte": { to_base: 8.8e12, from_base: 1/8.8e12 },
+                "Petabit": { to_base: 1e15, from_base: 1e-15 },
+                "Petabyte": { to_base: 8e15, from_base: 1/8e15 },
+                "Pebibit": { to_base: 1.126e15, from_base: 1/1.126e15 },
+                "Pebibyte": { to_base: 9.007e15, from_base: 1/9.007e15 },
+            },
+            "Energy": {
+                "Joule": { to_base: 1, from_base: 1 },
+                "Kilojoule": { to_base: 1000, from_base: 0.001 },
+                "Gram calorie": { to_base: 4.184, from_base: 1/4.184 },
+                "Kilocalorie": { to_base: 4184, from_base: 1/4184 },
+                "Watt hour": { to_base: 3600, from_base: 1/3600 },
+                "Kilowatt hour": { to_base: 3.6e6, from_base: 1/3.6e6 },
+                "Electronvolt": { to_base: 1.60218e-19, from_base: 1/1.60218e-19 },
+                "British thermal unit (BTU)": { to_base: 1055.06, from_base: 1/1055.06 },
+                "US therm": { to_base: 1.055e8, from_base: 1/1.055e8 },
+                "Foot-pound": { to_base: 1.35582, from_base: 1/1.35582 },
+            },
+            "Power": {
+                "Watt": { to_base: 1, from_base: 1 },
+                "Kilowatt": { to_base: 1000, from_base: 0.001 },
+                "Megawatt": { to_base: 1e6, from_base: 1e-6 },
+                "Gigawatt": { to_base: 1e9, from_base: 1e-9 },
+                "Mechanical Horsepower": { to_base: 745.7, from_base: 1/745.7 },
+                "Metric Horsepower": { to_base: 735.499, from_base: 1/735.499 },
+                "BTU per minute": { to_base: 17.5843, from_base: 1/17.5843 },
+                "Foot-pound per minute": { to_base: 0.022597, from_base: 1/0.022597 },
+            },
+            "Frequency": {
+                "Hertz": { to_base: 1, from_base: 1 },
+                "Kilohertz": { to_base: 1000, from_base: 0.001 },
+                "Megahertz": { to_base: 1e6, from_base: 1e-6 },
+                "Gigahertz": { to_base: 1e9, from_base: 1e-9 },
+                "Revolutions per minute (RPM)": { to_base: 1/60, from_base: 60 },
+            },
+            "Angle": {
+                "Degree": { to_base: 1, from_base: 1 },
+                "Radian": { to_base: 180/Math.PI, from_base: Math.PI/180 },
+                "Gradian": { to_base: 0.9, from_base: 1/0.9 },
+                "Arcminute": { to_base: 1/60, from_base: 60 },
+                "Arcsecond": { to_base: 1/3600, from_base: 3600 },
+            },
+            "Data Transfer Rate": {
+                "Bits per second": { to_base: 1, from_base: 1 },
+                "Bytes per second": { to_base: 8, from_base: 1/8 },
+                "Kilobits per second": { to_base: 1000, from_base: 0.001 },
+                "Kilobytes per second": { to_base: 8000, from_base: 1/8000 },
+                "Kibibits per second": { to_base: 1024, from_base: 1/1024 },
+                "Kibibytes per second": { to_base: 8192, from_base: 1/8192 },
+                "Megabits per second": { to_base: 1e6, from_base: 1e-6 },
+                "Megabytes per second": { to_base: 8e6, from_base: 1/8e6 },
+                "Mebibits per second": { to_base: 1048576, from_base: 1/1048576 },
+                "Mebibytes per second": { to_base: 8388608, from_base: 1/8388608 },
+                "Gigabits per second": { to_base: 1e9, from_base: 1e-9 },
+                "Gigabytes per second": { to_base: 8e9, from_base: 1/8e9 },
+                "Gibibits per second": { to_base: 1.074e9, from_base: 1/1.074e9 },
+                "Gibibytes per second": { to_base: 8.59e9, from_base: 1/8.59e9 },
+                "Terabits per second": { to_base: 1e12, from_base: 1e-12 },
+                "Terabytes per second": { to_base: 8e12, from_base: 1/8e12 },
+            },
+            "Fuel Economy": {
+                "Miles per Gallon (US)": { 
+                    to_base: value => 235.214 / value, 
+                    from_base: baseValue => 235.214 / baseValue 
+                },
+                "Miles per Gallon (Imperial)": { 
+                    to_base: value => 282.481 / value, 
+                    from_base: baseValue => 282.481 / baseValue 
+                },
+                "Kilometer per Liter": { 
+                    to_base: value => 100 / value, 
+                    from_base: baseValue => 100 / baseValue 
+                },
+                "Liters per 100 Kilometers": { 
+                    to_base: 1, 
+                    from_base: 1 
+                },
+            },
+            "Typography": {
+                "Point (PostScript)": { to_base: 1, from_base: 1 },
+                "Pixel (at 96 DPI)": { to_base: 0.75, from_base: 1/0.75 },
+                "Pica": { to_base: 12, from_base: 1/12 },
+                "Inch": { to_base: 72, from_base: 1/72 },
+                "Centimeter": { to_base: 28.3465, from_base: 1/28.3465 },
+                "Millimeter": { to_base: 2.83465, from_base: 1/2.83465 },
+                "Em": { to_base: 16, from_base: 1/16 },
+            },
+            "Luminance": {
+                "Candela/Square Meter": { to_base: 1, from_base: 1 },
+                "Nit": { to_base: 1, from_base: 1 },
+                "Stilb": { to_base: 10000, from_base: 0.0001 },
+                "Lambert": { to_base: 3183.09886, from_base: 1/3183.09886 },
+                "Foot-lambert": { to_base: 3.4262591, from_base: 1/3.4262591 },
+            },
+            "Force": {
+                "Newton": { to_base: 1, from_base: 1 },
+                "Kilonewton": { to_base: 1000, from_base: 0.001 },
+                "Dyne": { to_base: 1e-5, from_base: 1e5 },
+                "Kilogram-force": { to_base: 9.80665, from_base: 1/9.80665 },
+                "Pound-force": { to_base: 4.44822, from_base: 1/4.44822 },
+                "Poundal": { to_base: 0.138255, from_base: 1/0.138255 },
+            },
+            "Torque": {
+                "Newton Meter": { to_base: 1, from_base: 1 },
+                "Dyne Meter": { to_base: 1e-7, from_base: 1e7 },
+                "Pound-force Foot": { to_base: 1.35582, from_base: 1/1.35582 },
+                "Pound-force Inch": { to_base: 0.112985, from_base: 1/0.112985 },
+                "Kilogram-force Meter": { to_base: 9.80665, from_base: 1/9.80665 },
+            },
+            "Density": {
+                "Kilogram/Cubic Meter": { to_base: 1, from_base: 1 },
+                "Gram/Cubic Centimeter": { to_base: 1000, from_base: 0.001 },
+                "Pound/Cubic Foot": { to_base: 16.0185, from_base: 1/16.0185 },
+                "Pound/Cubic Inch": { to_base: 27679.9, from_base: 1/27679.9 },
+                "Slug/Cubic Foot": { to_base: 515.379, from_base: 1/515.379 },
+            },
+            "Radioactivity": {
+                "Becquerel": { to_base: 1, from_base: 1 },
+                "Curie": { to_base: 3.7e10, from_base: 1 / 3.7e10 },
+                "Rutherford": { to_base: 1e6, from_base: 1e-6 },
+                "Disintegrations per minute": { to_base: 1 / 60, from_base: 60 },
+            }
+        };
+
+        let lastActiveInput = 'from';
+
+        const categorySelect = document.getElementById('categorySelect');
+        const fromValueInput = document.getElementById('fromValue');
+        const fromUnitSelect = document.getElementById('fromUnit');
+        const toValueInput = document.getElementById('toValue');
+        const toUnitSelect = document.getElementById('toUnit');
+
+        function populateCategories() {
+            const categories = Object.keys(units);
+            categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        }
+
+        function populateUnits() {
+            const category = categorySelect.value;
+            const unitNames = Object.keys(units[category]);
+            const options = unitNames.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+            fromUnitSelect.innerHTML = options;
+            toUnitSelect.innerHTML = options;
+
+            if (unitNames.length > 1) {
+                fromUnitSelect.value = unitNames[0];
+                toUnitSelect.value = unitNames[1];
+            } else if (unitNames.length === 1) {
+                fromUnitSelect.value = unitNames[0];
+                toUnitSelect.value = unitNames[0];
+            }
+        }
+        
+        function convert() {
+            const fromValue = parseFloat(fromValueInput.value);
+            const toValue = parseFloat(toValueInput.value);
+            const fromUnit = fromUnitSelect.value;
+            const toUnit = toUnitSelect.value;
+            const category = categorySelect.value;
+            const categoryUnits = units[category];
+            
+            if (!categoryUnits || !fromUnit || !toUnit) return;
+
+            if (lastActiveInput === 'from') {
+                if (isNaN(fromValue)) {
+                    toValueInput.value = '';
+                    return;
+                }
+                const fromUnitDef = categoryUnits[fromUnit];
+                const toUnitDef = categoryUnits[toUnit];
+                
+                let baseValue;
+                if (typeof fromUnitDef.to_base === 'function') {
+                    baseValue = fromUnitDef.to_base(fromValue);
+                } else {
+                    baseValue = fromValue * fromUnitDef.to_base;
+                }
+                
+                let finalValue;
+                if (typeof toUnitDef.from_base === 'function') {
+                    finalValue = toUnitDef.from_base(baseValue);
+                } else {
+                    finalValue = baseValue * toUnitDef.from_base;
+                }
+                
+                toValueInput.value = isNaN(finalValue) ? '' : Number(finalValue.toPrecision(10));
+
+            } else {
+                 if (isNaN(toValue)) {
+                    fromValueInput.value = '';
+                    return;
+                }
+                const fromUnitDef = categoryUnits[toUnit];
+                const toUnitDef = categoryUnits[fromUnit];
+                
+                let baseValue;
+                if (typeof fromUnitDef.to_base === 'function') {
+                    baseValue = fromUnitDef.to_base(toValue);
+                } else {
+                    baseValue = toValue * fromUnitDef.to_base;
+                }
+                
+                let finalValue;
+                if (typeof toUnitDef.from_base === 'function') {
+                    finalValue = toUnitDef.from_base(baseValue);
+                } else {
+                    finalValue = baseValue * toUnitDef.from_base;
+                }
+
+                fromValueInput.value = isNaN(finalValue) ? '' : Number(finalValue.toPrecision(10));
+            }
+        }
+
+        function handleCategoryChange() {
+            populateUnits();
+            convert();
+        }
+
+        function init() {
+            populateCategories();
+            populateUnits();
+            convert();
+
+            categorySelect.addEventListener('change', handleCategoryChange);
+            
+            fromValueInput.addEventListener('input', () => {
+                lastActiveInput = 'from';
+                convert();
+            });
+            
+            toValueInput.addEventListener('input', () => {
+                lastActiveInput = 'to';
+                convert();
+            });
+            
+            fromUnitSelect.addEventListener('change', () => {
+                lastActiveInput = 'from';
+                convert();
+            });
+
+            toUnitSelect.addEventListener('change', () => {
+                lastActiveInput = 'from';
+                convert();
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
